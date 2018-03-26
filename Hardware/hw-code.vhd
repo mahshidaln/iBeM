@@ -11,15 +11,15 @@ entity main is
 	generic(m : in integer range 0 to 2 :=1;				--metabolites
 	        q : in integer range 0 to 6 := 5;			--reactions not splitted
 	        qsplit : in integer range 0 to 7 := 6;		--reactions splitted
-	        R_rows : in integer range 0 to 7 := 6;		--qsplit 
+	        R_rows : in integer range 0 to 7 := 6;		--qsplit
 	        R_columns : in integer range 0 to 5 := 4;	--qsplit-m
 	        R1_rows : in integer range 0 to 5 := 4;		--qsplit-m
 	        R2_rows : in integer range 0 to 3 := 2);		--m
 	port(clock, reset : in std_logic;
 	   --R1_data : in std_logic_vector(1 to R1_rows*R_columns);
 	   R1_data : in std_logic_vector(1 to 16);
-	   --R2_data : in fixedp_array(1 to R2_rows*R_columns); 
-	   R2_data : in fixedp_array(1 to 8); 
+	   --R2_data : in fixedp_array(1 to R2_rows*R_columns);
+           R2_data : in fixedp_array(1 to 8);
 	   SW_call : out std_logic := '0';
 	   EM_columns : out integer range 0 to 10 := 0;
 	   EM_rows : out integer range 0 to 10 := 0;
@@ -32,8 +32,8 @@ signal numr : integer := qsplit - m;	--same numr as in code
 --signal EM_data : std_logic_vector(1 to R_rows*((R_columns)*(R_columns) + R_columns)) := (others => '0');
 constant max_column : integer := R_rows*(R_columns*R_columns + R_columns);  --max of columns in R after adding combination
 signal zero : sfixed(10 downto -10);	--fixed point equal for zero
-signal one : sfixed(10 downto -10);		--fixed point equal for one 
-		
+signal one : sfixed(10 downto -10);		--fixed point equal for one
+
 --signal R1_matrix : bit_matrix(1 to R_rows, max_column downto 1);	--signal to store R1 with max size
 --signal R2_matrix : int_matrix(1 to R2_rows, max_column downto 1);	--signal to store R2 with max size
 
@@ -43,7 +43,7 @@ signal state : state_type := S0;	--initial state
 attribute fsm_encoding : string;
 attribute fsm_encoding of state : signal is "sequential";
 
-begin	
+begin
     zero <=  to_sfixed(0.0, zero);
     one <= to_sfixed(1.0, one);
     process(clock)
@@ -57,14 +57,14 @@ begin
     --variables the same as pseudo code
 	variable new_numr : integer := numr;
 	variable p : integer := q-m;	--main loop counter
-	variable k : integer := 0;		--jneg loop counter 	
+	variable k : integer := 0;		--jneg loop counter
 	variable l : integer := 0;		--jpos loop counter
 	variable r : integer := 0;		--test loop counter
 	variable adj : integer := 0;	--test result
-	variable nullbits : integer := 0;	--number of zeros in newr 
+	variable nullbits : integer := 0;	--number of zeros in newr
 	variable newr : std_logic_vector(1 to R_rows) := (others => '0');	--new column to be added
 	variable testr : std_logic_vector(1 to R_rows):= (others => '0');	--test column
-	
+
 	--variables to store R1 and R2 with max size
 	variable R1_matrix : bit_matrix(1 to R_rows, max_column downto 1) := (others =>(others => '0'));
 	variable R2_matrix : fixedp_matrix(1 to R2_rows, max_column downto 1) := (others =>(others => zero));
@@ -77,8 +77,8 @@ begin
 	--S1 variables
 	variable wanted_row : integer := 0;		--the row number of R2 which is being changed
 	variable wanted_R2 : fixedp_array(1 to max_column) := (others => zero);	--the row_vector of R2 which is being changed
-	variable pos_neg_index : integer := 1;	--index that is added to jpos or jneg	
-	
+	variable pos_neg_index : integer := 1;	--index that is added to jpos or jneg
+
 	--S5 variables
 	variable num_of_added : integer := 0;	--total number of columns added to R1 and R2
 	variable valid_column : integer := R_columns;	--total number of valid columns in R2 and R1
@@ -86,16 +86,16 @@ begin
 
 	variable R1_valid_row : integer := R1_rows;		--total number of valid rows in R1
 	variable R2_valid_row : integer := R2_rows;		--total number of valid rows in R2
-	
+
 	variable newR2element : sfixed(10 downto -10);		--
-	
+
 	begin
 	  	if(rising_edge(clock)) then
 	    	if (reset = '1') then
 	    		state <= S0;
 	    	else
 	    		case state is
-	    			when S0 =>	
+	    			when S0 =>
 	    				-- initializing some variables
 		    			p := q-m;
 		    			k := 0;
@@ -112,7 +112,7 @@ begin
 						new_numr := numr;
 						R1_valid_row := R1_rows;
 		    			state <= S0a;
-		
+
 		    		when S0a =>
 		    			-- turn the row vector of R1 into a 2D matrix
 		    			if(l1_counter < R1_rows or l1_counter = R1_rows) then
@@ -142,7 +142,7 @@ begin
 								state <= S0b;
 							else
 								state <= S0b;
-							end if;  
+							end if;
 						else
 							state <= S1;
 						end if;
@@ -166,7 +166,7 @@ begin
 	    			when S1a =>
 	    				--copy values of wanted row from R2 into wanted_R2 to find neg and pos values
 	    				wanted_R2(lf_counter) := R2_matrix(wanted_row, lf_counter);
-	    				lf_counter := lf_counter + 1; 
+	    				lf_counter := lf_counter + 1;
 	    				if(lf_counter > valid_column) then
 	    					-- initiazlization for S1b
 							jneg_size := 0;
@@ -177,9 +177,9 @@ begin
 	    					state <= S1b;
 	    				else
 	    					state <= S1a;
-	    				end if;	
+	    				end if;
 
-	    			when S1b => 
+	    			when S1b =>
 	    				--find_neg and find_pos implementation
 	    				if((l3_counter < valid_column) or (l3_counter = valid_column))  then
 	    					if(wanted_R2(l3_counter) > zero) then
@@ -214,7 +214,7 @@ begin
 	    					l := l+1;
 	    					lg_counter := 1;
 	    					state <= S3;
-	    				else 
+	    				else
 		    				if((l < jpos_size) or (l = jpos_size)) then
 		    					newr(lg_counter) := R1_matrix(lg_counter,jneg(k)) or R1_matrix(lg_counter,jpos(l));
 		    					lg_counter := lg_counter + 1;
@@ -222,17 +222,17 @@ begin
 									l4_counter := 1;
 									nullbits := 0;
 		    						state <= S3a;
-		    					else 
+		    					else
 		    						state <= S3;
 		    					end if;
 		    				else
 		    					state <= s2;
 		    				end if;
-		    			end if;	
+		    			end if;
 
 	    			when S3a =>
 	    				--count the number of null bits in newr (the result of bitwise or in S3)
-	    				if((l4_counter < R1_valid_row) or (l4_counter = R1_valid_row)) then 
+	    				if((l4_counter < R1_valid_row) or (l4_counter = R1_valid_row)) then
 	    					if(newr(l4_counter) = '0') then
 	    						nullbits := nullbits + 1;
 	    					end if;
@@ -241,7 +241,7 @@ begin
 	    				else
 	    					state <= S3aa;
 	    				end if;
-	    			
+
 	    			when S3aa =>
 	    				--check the minimum number of zeros
 						if(nullbits+1 < qsplit-m-1) then	--????????????????????????????????
@@ -251,7 +251,7 @@ begin
 	    					state <= S3b;
 	    				end if;
 
-	    			when S3b => 
+	    			when S3b =>
 	    				--initialization for adjacency test
 	    				adj := 1;
 						r := 0;
@@ -260,13 +260,13 @@ begin
 
 	    			when S4 =>
 	    				--adjacency test: r+ or r- != r+ or r- or (other R columns)
-	    				if(lh_counter > R1_valid_row) then 
+	    				if(lh_counter > R1_valid_row) then
 	    					r := r+1;
 	    					lh_counter := 1;
 	    					state <= S4;
 	    				else
 		    				if((r < numr) and (adj = 1)) then
-		    					testr(lh_counter) := newr(lh_counter) or R1_matrix(lh_counter, r); 
+		    					testr(lh_counter) := newr(lh_counter) or R1_matrix(lh_counter, r);
 		    					lh_counter := lh_counter + 1;
 		    					if(lh_counter > R1_valid_row) then
 			    					if ((r /= jpos(l)) and (r /= jneg(k)) and (testr = newr)) then
@@ -283,7 +283,7 @@ begin
 		  					end if;
 		  				end if;
 
-		  			when S5 => 
+		  			when S5 =>
 		  				--initializtion for combination loop in S5a
 		  				if(adj = 1) then
 							new_numr := new_numr + 1;
@@ -302,11 +302,11 @@ begin
     			        li_counter := li_counter + 1;
     			        if(li_counter > R1_valid_row) then
     						l5_counter := wanted_row;
-    						state <= S5b; 
+    						state <= S5b;
     					else
     						state <= S5a;
     					end if;
-	    					
+
 	    			when S5b =>
 	    				--combine and add the result of combination to R2
 	    				if((l5_counter < R2_rows) or (l5_counter = R2_rows)) then
@@ -332,7 +332,7 @@ begin
 	    						state <= S6;
 	    					end if;
 	    				else
-	    					state <= S7;		
+	    					state <= S7;
 	    				end if;
 	    			when S6a =>
 	    				--copy the last columns of R2 in the place of columns with negative rows
@@ -348,7 +348,7 @@ begin
 	    			when S6b =>
 	    				--some reset initiation for copy loops(deletion of neg rays)
 	    				lj_counter := 1;
-	    				l6_counter := l6_counter + 1;	
+	    				l6_counter := l6_counter + 1;
 	    				state <= S6;
 
 	    			when S7 =>
@@ -356,12 +356,12 @@ begin
 						numr <= new_numr - jneg_size;
 						new_numr := new_numr - jneg_size;
 	    				valid_column := valid_column - jneg_size;
-	    				
+
 	    				--initialization to copy the last editted row of R2 into R1;
 	    				R1_valid_row := R1_valid_row + 1;
 	    				l7_counter := 1;
 	    				state <= S7a;
-	    				
+
 	    			when S7a =>
 	    				--copy the new binary row of R2 into R1;
 	    				if((l7_counter < valid_column) or (l7_counter = valid_column)) then
@@ -377,7 +377,7 @@ begin
 						end if;
 
 					when S8 =>
-						--turn the 2D R2_matrix into a vector 
+						--turn the 2D R2_matrix into a vector
 						if((l8_counter < R1_valid_row) or (l8_counter = R1_valid_row)) then
 							EM_data(lm_counter) <= R1_matrix(l8_counter, ll_counter);
 							lm_counter := lm_counter + 1;
@@ -392,7 +392,7 @@ begin
 						else
 							state <= S_f;
 						end if;
-						
+
 					when S_f =>
 							--set the value of output signals and call software
 							EM_columns <= valid_column;
@@ -403,6 +403,6 @@ begin
 	    				state <= S0;
 	    			end case;
 	  		end if;
-	  	end if;  
+	  	end if;
 	end process;
-end architecture; 
+end architecture;
