@@ -8,24 +8,25 @@ use ieee.numeric_std.all;
 use ieee.fixed_pkg.all;
 
 entity main is
-	generic(m : in integer range 0 to 2 :=1;				--metabolites
+	generic(m : in integer range 0 to 2 :=1;			--metabolites
 	        q : in integer range 0 to 6 := 5;			--reactions not splitted
 	        qsplit : in integer range 0 to 7 := 6;		--reactions splitted
 	        R_rows : in integer range 0 to 7 := 6;		--qsplit
 	        R_columns : in integer range 0 to 5 := 4;	--qsplit-m
 	        R1_rows : in integer range 0 to 5 := 4;		--qsplit-m
-	        R2_rows : in integer range 0 to 3 := 2);		--m
+	        R2_rows : in integer range 0 to 3 := 2);	--m
 	port(clock, reset : in std_logic;
-	   --R1_data : in std_logic_vector(1 to R1_rows*R_columns);
-	   R1_data : in std_logic_vector(1 to 16);
-	   --R2_data : in fixedp_array(1 to R2_rows*R_columns);
-           R2_data : in fixedp_array(1 to 8);
-	   SW_call : out std_logic := '0';
-	   EM_columns : out integer range 0 to 10 := 0;
-	   EM_rows : out integer range 0 to 10 := 0;
-	   --EM_data: out std_logic_vector(1 to R_rows*((R_columns)*(R_columns) + R_columns)) := (others => '0')
-	   EM_data: out std_logic_vector(1 to 16) := (others => '0')
-      );
+	    --R1_data : in std_logic_vector(1 to R1_rows*R_columns);
+	    R1_data : in std_logic_vector(1 to 16);
+	    --R2_data : in fixedp_array(1 to R2_rows*R_columns);
+		--R2_data : in fixedp_array(1 to 8);
+		R2_data_postfix : in std_vec_array(1 to 8);
+	    SW_call : out std_logic := '0';
+	    EM_columns : out integer range 0 to 10 := 0;
+	    EM_rows : out integer range 0 to 10 := 0;
+	    --EM_data: out std_logic_vector(1 to R_rows*((R_columns)*(R_columns) + R_columns)) := (others => '0')
+	    EM_data: out std_logic_vector(1 to 36) := (others => '0')
+    );
 end entity;
 architecture arch of main is
 signal numr : integer := qsplit - m;	--same numr as in code
@@ -33,6 +34,9 @@ signal numr : integer := qsplit - m;	--same numr as in code
 constant max_column : integer := R_rows*(R_columns*R_columns + R_columns);  --max of columns in R after adding combination
 signal zero : sfixed(10 downto -10);	--fixed point equal for zero
 signal one : sfixed(10 downto -10);		--fixed point equal for one
+
+--fixed point signal of R2 data in R2_postfix
+signal R2_data: fixedp_array(1 to 8);
 
 --signal R1_matrix : bit_matrix(1 to R_rows, max_column downto 1);	--signal to store R1 with max size
 --signal R2_matrix : int_matrix(1 to R2_rows, max_column downto 1);	--signal to store R2 with max size
@@ -45,7 +49,11 @@ attribute fsm_encoding of state : signal is "sequential";
 
 begin
     zero <=  to_sfixed(0.0, zero);
-    one <= to_sfixed(1.0, one);
+	one <= to_sfixed(1.0, one);
+	for_label:
+	for i in 1 to 8 generate
+		R2_data(i) <= to_sfixed(R2_data_postfix(i), 10 , -10);
+	end generate for_label;
     process(clock)
     --counters for different loops
     variable l1_counter, l2_counter, l3_counter, l4_counter, l5_counter, l6_counter, l7_counter, l8_counter : integer := 1;
@@ -87,7 +95,8 @@ begin
 	variable R1_valid_row : integer := R1_rows;		--total number of valid rows in R1
 	variable R2_valid_row : integer := R2_rows;		--total number of valid rows in R2
 
-	variable newR2element : sfixed(10 downto -10);		--
+	variable newR2element : sfixed(22 downto -20);	--not necessary :D
+
 
 	begin
 	  	if(rising_edge(clock)) then

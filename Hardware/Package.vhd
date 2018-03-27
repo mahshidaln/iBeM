@@ -9,4 +9,5 @@ Package my_package is
 	type int_matrix is array(natural range <>, natural range <>) of integer;
 	type fixedp_matrix is array(natural range <>, natural range <>) of sfixed(10 downto -10);
 	type bit_matrix is array(natural range <>, natural range <>) of std_logic;
+	type std_vec_array is array(natural range<>) of std_logic_vector(20 downto 0);
 end;
