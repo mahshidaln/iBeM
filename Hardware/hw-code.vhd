@@ -18,8 +18,7 @@ entity main is
 	port(clock, reset : in std_logic;
 	    --R1_data : in std_logic_vector(1 to R1_rows*R_columns);
 	    R1_data : in std_logic_vector(1 to 16);
-	    --R2_data : in fixedp_array(1 to R2_rows*R_columns);
-		--R2_data : in fixedp_array(1 to 8);
+	    --R2_data_postfix : in fixedp_array(1 to R2_rows*R_columns);
 		R2_data_postfix : in std_vec_array(1 to 8);
 	    SW_call : out std_logic := '0';
 	    EM_columns : out integer range 0 to 10 := 0;
@@ -30,12 +29,11 @@ entity main is
 end entity;
 architecture arch of main is
 signal numr : integer := qsplit - m;	--same numr as in code
---signal EM_data : std_logic_vector(1 to R_rows*((R_columns)*(R_columns) + R_columns)) := (others => '0');
 constant max_column : integer := R_rows*(R_columns*R_columns + R_columns);  --max of columns in R after adding combination
 signal zero : sfixed(10 downto -10);	--fixed point equal for zero
 signal one : sfixed(10 downto -10);		--fixed point equal for one
 
---fixed point signal of R2 data in R2_postfix
+--fixed point signal of R2 data in R2_data_postfix
 signal R2_data: fixedp_array(1 to 8);
 
 --signal R1_matrix : bit_matrix(1 to R_rows, max_column downto 1);	--signal to store R1 with max size
@@ -50,10 +48,13 @@ attribute fsm_encoding of state : signal is "sequential";
 begin
     zero <=  to_sfixed(0.0, zero);
 	one <= to_sfixed(1.0, one);
+
+	--initialize R2_data with fixed_point values read from R2_data_postfix
 	for_label:
 	for i in 1 to 8 generate
 		R2_data(i) <= to_sfixed(R2_data_postfix(i), 10 , -10);
 	end generate for_label;
+
     process(clock)
     --counters for different loops
     variable l1_counter, l2_counter, l3_counter, l4_counter, l5_counter, l6_counter, l7_counter, l8_counter : integer := 1;
@@ -95,7 +96,7 @@ begin
 	variable R1_valid_row : integer := R1_rows;		--total number of valid rows in R1
 	variable R2_valid_row : integer := R2_rows;		--total number of valid rows in R2
 
-	variable newR2element : sfixed(22 downto -20);	--not necessary :D
+	variable newR2element : sfixed(22 downto -20);	--result of subtraction and multiply in R2 new values
 
 
 	begin
