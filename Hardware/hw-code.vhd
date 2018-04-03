@@ -102,9 +102,7 @@ begin
 	variable R1_matrix : bit_matrix(1 to R_rows, max_column downto 1) := (others =>(others => '0'));
 	variable R2_matrix : fixedp_matrix(1 to R2_rows, max_column downto 1) := (others =>(others => zero));
 
-	--jneg and jpos row_vectors and their size
-	variable jpos : int_array (1 to max_column) := (others => 0);	--row_vector of indices in R2 row with positive value
-	variable jneg : int_array (1 to max_column) := (others => 0); 	--row_vector of indices in R2 row with negative value
+	
 	
 	variable jneg_size : integer range 0 to 10 := 0;				--size of jneg
 	variable jpos_size : integer range 0 to 5 := 0;					--size of jpos
