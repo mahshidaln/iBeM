@@ -22,8 +22,7 @@ architecture arch_t of main_t is
 		port(clock, reset : in std_logic;
 			--R1_data : in std_logic_vector(1 to R1_rows*R_columns);
 			R1_data : in std_logic_vector(1 to 16);
-			--R2_data : in fixedp_array(1 to R2_rows*R_columns);
-			--R2_data : in fixedp_array(1 to 8);
+			--R2_data_postfix : in fixedp_array(1 to R2_rows*R_columns);
 			R2_data_postfix : in std_vec_array(1 to 8);
 			SW_call : out std_logic := '0';
 			EM_columns : out integer range 0 to 10 := 0;

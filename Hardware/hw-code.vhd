@@ -7,8 +7,9 @@ use ieee.math_real.all;
 use ieee.numeric_std.all;
 use ieee.fixed_pkg.all;
 
+
 entity main is
-	generic(m : in integer range 0 to 2 :=1;			--metabolites
+	generic(m : in integer range 0 to 2 :=2;			--metabolites
 	        q : in integer range 0 to 6 := 5;			--reactions not splitted
 	        qsplit : in integer range 0 to 7 := 6;		--reactions splitted
 	        R_rows : in integer range 0 to 7 := 6;		--qsplit
@@ -18,20 +19,23 @@ entity main is
 	port(clock, reset : in std_logic;
 	    --R1_data : in std_logic_vector(1 to R1_rows*R_columns);
 	    R1_data : in std_logic_vector(1 to 16);
-	    --R2_data_postfix : in fixedp_array(1 to R2_rows*R_columns);
+	    --R2_data_postifx : in fixedp_array(1 to R2_rows*R_columns);
 		R2_data_postfix : in std_vec_array(1 to 8);
 	    SW_call : out std_logic := '0';
-	    EM_columns : out integer range 0 to 10 := 0;
-	    EM_rows : out integer range 0 to 10 := 0;
+	    EM_columns : out integer range 0 to 7 := 0;
+	    EM_rows : out integer range 0 to 7 := 0;
 	    --EM_data: out std_logic_vector(1 to R_rows*((R_columns)*(R_columns) + R_columns)) := (others => '0')
 	    EM_data: out std_logic_vector(1 to 36) := (others => '0')
     );
 end entity;
 architecture arch of main is
-signal numr : integer := qsplit - m;	--same numr as in code
-constant max_column : integer := R_rows*(R_columns*R_columns + R_columns);  --max of columns in R after adding combination
-signal zero : sfixed(10 downto -10);	--fixed point equal for zero
-signal one : sfixed(10 downto -10);		--fixed point equal for one
+--signal numr : integer := qsplit - m;	--same numr as in code
+
+--max of columns in R after adding combination
+constant max_column : integer := R_rows*(R_columns*R_columns + R_columns);  
+
+--fixed point equal for zero
+signal zero : sfixed(10 downto -10);	
 
 --fixed point signal of R2 data in R2_data_postfix
 signal R2_data: fixedp_array(1 to 8);
@@ -39,38 +43,58 @@ signal R2_data: fixedp_array(1 to 8);
 --signal R1_matrix : bit_matrix(1 to R_rows, max_column downto 1);	--signal to store R1 with max size
 --signal R2_matrix : int_matrix(1 to R2_rows, max_column downto 1);	--signal to store R2 with max size
 
-type state_type is (S0, S0a, S0b, S1, S1a, S1b, S2, S3, S3a, S3aa, S3b, S4, S5, S5a, S5b, S6, S6a, S6b, S7, S7a, S8, S_f);	--all states
-signal state : state_type := S0;	--initial state
+--all states
+type state_type is (S0, S0a, S0b, S1, S1a, S1b, S2, S3, S3a, S3aa, S3b, S4, S5, S5a, S5b, S6, S6a, S6b, S7, S7a, S8, S_f);	
+--initial state
+signal state : state_type := S0;	
 
+--customizing fsm encoding
 attribute fsm_encoding : string;
 attribute fsm_encoding of state : signal is "sequential";
 
 begin
     zero <=  to_sfixed(0.0, zero);
-	one <= to_sfixed(1.0, one);
-
+	
 	--initialize R2_data with fixed_point values read from R2_data_postfix
 	for_label:
 	for i in 1 to 8 generate
 		R2_data(i) <= to_sfixed(R2_data_postfix(i), 10 , -10);
 	end generate for_label;
 
-    process(clock)
-    --counters for different loops
-    variable l1_counter, l2_counter, l3_counter, l4_counter, l5_counter, l6_counter, l7_counter, l8_counter : integer := 1;
+	process(clock, state)
+
+	--counters for different loops
+	variable l1_counter : integer range 0 to 40 := 1;
+	variable l2_counter : integer range 0 to 40 := 1;
+	variable l3_counter : integer range 0 to 40 := 1;
+	variable l4_counter : integer range 0 to 40 := 1;
+	variable l5_counter : integer range 0 to 40 := 1;
+	variable l6_counter : integer range 0 to 40 := 1;
+	variable l7_counter : integer range 0 to 40 := 1;
+	variable l8_counter : integer range 0 to 40 := 1;
 
     --counter for additional loops that implements matrix iteration
-    variable lg_counter, lh_counter : integer;
-    variable la_counter, lb_counter, lc_counter, ld_counter, lf_counter, li_counter, lj_counter, lk_counter, ll_counter, lm_counter : integer := 1;
+	variable la_counter : integer range 0 to 40 := 1;
+	variable lb_counter : integer range 0 to 17;
+	variable lc_counter : integer range 0 to 40 := 1;
+	variable ld_counter : integer range 0 to 40 := 1;
+	variable lf_counter : integer range 0 to 40 := 1;
+	variable lg_counter : integer range 0 to 40;
+	variable lh_counter : integer range 0 to 40;
+	variable li_counter : integer range 0 to 40 := 1;
+	variable lj_counter : integer range 0 to 40 := 1;
+	variable lk_counter : integer range 0 to 40 := 1;
+	variable ll_counter : integer range 0 to 40 := 1;
+	variable lm_counter : integer range 0 to 40 := 1;
 
     --variables the same as pseudo code
-	variable new_numr : integer := numr;
-	variable p : integer := q-m;	--main loop counter
-	variable k : integer := 0;		--jneg loop counter
-	variable l : integer := 0;		--jpos loop counter
-	variable r : integer := 0;		--test loop counter
-	variable adj : integer := 0;	--test result
-	variable nullbits : integer := 0;	--number of zeros in newr
+	variable new_numr : integer range 0 to 10 := qsplit - m;
+	variable p : integer range 0 to 10 := q-m;			--main loop counter
+	variable k : integer range 0 to 10 := 0;			--jneg loop counter
+	variable l : integer range 0 to 10 := 0;			--jpos loop counter		
+	variable r : integer range 0 to 10 := 0;			--test loop counter
+	variable adj : integer range 0 to 1 := 0;			--test result	
+	variable nullbits : integer range 0 to 10 := 0;		--number of zeros in newr
 	variable newr : std_logic_vector(1 to R_rows) := (others => '0');	--new column to be added
 	variable testr : std_logic_vector(1 to R_rows):= (others => '0');	--test column
 
@@ -79,28 +103,26 @@ begin
 	variable R2_matrix : fixedp_matrix(1 to R2_rows, max_column downto 1) := (others =>(others => zero));
 
 	--jneg and jpos row_vectors and their size
-	variable jneg : int_array (1 to max_column) := (others => 0); 	--row_vector of indices in R2 row with negative value
 	variable jpos : int_array (1 to max_column) := (others => 0);	--row_vector of indices in R2 row with positive value
-	variable jneg_size, jpos_size : integer := 0;					--size of jneg/jpos
+	variable jneg : int_array (1 to max_column) := (others => 0); 	--row_vector of indices in R2 row with negative value
+	
+	variable jneg_size : integer range 0 to 10 := 0;				--size of jneg
+	variable jpos_size : integer range 0 to 5 := 0;					--size of jpos
 
 	--S1 variables
-	variable wanted_row : integer := 0;		--the row number of R2 which is being changed
+	variable wanted_row : integer range 0 to 10 := 0;						--the row number of R2 which is being changed
 	variable wanted_R2 : fixedp_array(1 to max_column) := (others => zero);	--the row_vector of R2 which is being changed
-	variable pos_neg_index : integer := 1;	--index that is added to jpos or jneg
 
-	--S5 variables
-	variable num_of_added : integer := 0;	--total number of columns added to R1 and R2
-	variable valid_column : integer := R_columns;	--total number of valid columns in R2 and R1
+	--last valid state of the result matrix
+	variable valid_column : integer range 0 to 10 := R_columns;		--total number of valid columns in R2 and R1
+	variable R1_valid_row : integer range 0 to 10 := R1_rows;		--total number of valid rows in R1
+	variable R2_valid_row : integer range 0 to 10 := R2_rows;		--total number of valid rows in R2
 
-
-	variable R1_valid_row : integer := R1_rows;		--total number of valid rows in R1
-	variable R2_valid_row : integer := R2_rows;		--total number of valid rows in R2
-
-	variable newR2element : sfixed(22 downto -20);	--result of subtraction and multiply in R2 new values
+	variable newR2element : sfixed(10 downto -10);		--result of subtraction and multiply in R2 new values, not necessary
 
 
 	begin
-	  	if(rising_edge(clock)) then
+	  	if rising_edge(clock) then
 	    	if (reset = '1') then
 	    		state <= S0;
 	    	else
@@ -112,14 +134,28 @@ begin
 		    			l := 0;
 		    			r := 0;
 		    			l1_counter := 1;
-		    			l2_counter := 1;
+						l2_counter := 1;
+						l3_counter := 1;
+						l4_counter := 1;
+						l5_counter := 1;
+						l6_counter := 1;
+						l7_counter := 1;
+						l8_counter := 1;
 		    			la_counter := 1;
 						lb_counter := 1;
 						lc_counter := 1;
 						ld_counter := 1;
 						lf_counter := 1;
+						li_counter := 1;
+						lj_counter := 1;
+						lk_counter := 1;
+						ll_counter := 1;
+						lm_counter := 1;
 						wanted_row := 0;
-						new_numr := numr;
+						valid_column := R_columns;
+						new_numr := qsplit - m;
+						jneg_size := 0;
+						jpos_size := 0;
 						R1_valid_row := R1_rows;
 		    			state <= S0a;
 
@@ -137,6 +173,9 @@ begin
 								state <= S0a;
 							end if;
 						else
+							l2_counter := 1;
+							lc_counter := 1;
+							ld_counter := 1;
 							state <= S0b;
 						end if;
 
@@ -154,6 +193,7 @@ begin
 								state <= S0b;
 							end if;
 						else
+							p := q-m;
 							state <= S1;
 						end if;
 
@@ -201,12 +241,13 @@ begin
 	    					end if;
 	    					l3_counter := l3_counter + 1;
 	    					state <= S1b;
-	    				else
+						else
+							k := k+1;
 	    					state <= S2;
 	    				end if;
 
 	    			when S2 =>
-	    				k := k+1;
+	    				--k := k+1;
 	    				--go to the inner loop for jpos
 						if((k < jneg_size) or (k = jneg_size)) then
 							lg_counter := R1_valid_row + 1;
@@ -275,7 +316,7 @@ begin
 	    					lh_counter := 1;
 	    					state <= S4;
 	    				else
-		    				if((r < numr) and (adj = 1)) then
+		    				if((r < valid_column) and (adj = 1)) then
 		    					testr(lh_counter) := newr(lh_counter) or R1_matrix(lh_counter, r);
 		    					lh_counter := lh_counter + 1;
 		    					if(lh_counter > R1_valid_row) then
@@ -297,7 +338,6 @@ begin
 		  				--initializtion for combination loop in S5a
 		  				if(adj = 1) then
 							new_numr := new_numr + 1;
-							num_of_added := num_of_added + 1;
 							valid_column := valid_column + 1;
 							li_counter := 1;
 							state <= S5a;
@@ -363,7 +403,7 @@ begin
 
 	    			when S7 =>
 	    				--edit required after delete process
-						numr <= new_numr - jneg_size;
+						--numr <= new_numr - jneg_size;
 						new_numr := new_numr - jneg_size;
 	    				valid_column := valid_column - jneg_size;
 
