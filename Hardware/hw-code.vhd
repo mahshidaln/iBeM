@@ -22,7 +22,7 @@ entity main is
 	    --R2_data_postifx : in fixedp_array(1 to R2_rows*R_columns);
 		R2_data_postfix : in std_vec_array(1 to 8);
 	    SW_call : out std_logic := '0';
-	    EM_columns : out integer range 0 to 7 := 0;
+	    EM_columns : out integer range 0 to 10 := 0;
 	    EM_rows : out integer range 0 to 7 := 0;
 	    --EM_data: out std_logic_vector(1 to R_rows*((R_columns)*(R_columns) + R_columns)) := (others => '0')
 	    EM_data: out std_logic_vector(1 to 36) := (others => '0')
@@ -51,10 +51,10 @@ type state_type is (S0, S0a, S0b, S1, S1a, S1b, S2, S3, S3a, S3aa, S3b, S4, S5, 
 --initial state
 signal state : state_type := S0;
 signal state_num : integer range 0 to 23 := 0;
---signal l_check :  integer := 0;
+
 attribute keep : string;
 attribute keep of state_num : signal is "true";
---attribute keep of l_check : signal is "true";
+
 --customizing fsm encoding
 attribute fsm_encoding : string;
 attribute fsm_encoding of state : signal is "sequential";
@@ -100,7 +100,7 @@ begin
 	variable k : integer range 0 to 10 := 0;			--jneg loop counter
 	variable l : integer range 0 to 10 := 0;			--jpos loop counter		
 	variable r : integer range 0 to 10 := 0;			--test loop counter
-	variable adj : integer range 0 to 1 := 0;			--test result	
+	variable adj : integer range 0 to 2 := 0;			--test result	
 	variable nullbits : integer range 0 to 10 := 0;		--number of zeros in newr
 	variable newr : std_logic_vector(1 to R_rows) := (others => '0');	--new column to be added
 	variable testr : std_logic_vector(1 to R_rows):= (others => '0');	--test column
@@ -114,7 +114,7 @@ begin
 	variable jneg : int_array (1 to max_column) := (others => 0); 	--row_vector of indices in R2 row with negative value
 	
 	variable jneg_size : integer range 0 to 10 := 0;				--size of jneg
-	variable jpos_size : integer range 0 to 5 := 0;					--size of jpos
+	variable jpos_size : integer range 0 to 10 := 0;				--size of jpos
 
 	--S1 variables
 	variable wanted_row : integer range 0 to 10 := 0;						--the row number of R2 which is being changed
@@ -282,7 +282,6 @@ begin
 	    				elsif((l < jpos_size) or (l = jpos_size)) then
 							newr(lg_counter) := R1_matrix(lg_counter,jneg(k)) or R1_matrix(lg_counter,jpos(l));
 							lg_counter := lg_counter + 1;
-							--l_check <= l;
 							if(lg_counter > R1_valid_row) then
 								l4_counter := 1;
 								nullbits := 0;
@@ -315,7 +314,7 @@ begin
 	    					state <= S3;
 	    				else
 	    					state <= S3b;
-	    				end if;
+						end if;
 
 					when S3b =>
 						state_num <= 10;
@@ -337,7 +336,7 @@ begin
 								testr(lh_counter) := newr(lh_counter) or R1_matrix(lh_counter, r);
 		    					lh_counter := lh_counter + 1;
 		    					if(lh_counter > R1_valid_row) then
-			    					if ((r /= jpos(l)) and (r /= jneg(k)) and (testr = newr)) then
+									if ((r /= jpos(l)) and (r /= jneg(k)) and (testr = newr)) then
 			    						adj := 0;
 			    					else
 			    					    adj := 1;
@@ -349,7 +348,7 @@ begin
 							else
 		    					state <= S5;
 		  					end if;
-		  				end if;
+						  end if;
 
 					  when S5 =>
 					  	state_num <= 12;
@@ -362,7 +361,7 @@ begin
 		    			else
 		    				lg_counter := R1_valid_row + 1;
 		    				state <= S3;
-		    			end if;
+						end if;
 
 					when S5a =>
 						state_num <= 13;
@@ -393,10 +392,10 @@ begin
 						state_num <= 15;
 	    				--copy the last columns of R1 in the place of columns with negative rows
 	    				if((l6_counter < jneg_size) or (l6_counter = jneg_size)) then
-	    					R1_matrix(lj_counter, jneg(l6_counter)) := R1_matrix(lj_counter, valid_column - l6_counter + 1);
+							R1_matrix(lj_counter, jneg(l6_counter)) := R1_matrix(lj_counter, valid_column - l6_counter + 1);
 	    					R1_matrix(lj_counter,valid_column - l6_counter + 1) := '0';
 	    					lj_counter := lj_counter + 1;
-							if(lj_counter > R1_rows) then
+							if(lj_counter > R1_valid_row) then
 								lk_counter := 1;
 	    						state <= S6a;
 	    					else
@@ -430,7 +429,6 @@ begin
 						--numr <= new_numr - jneg_size;
 						new_numr := new_numr - jneg_size;
 	    				valid_column := valid_column - jneg_size;
-
 	    				--initialization to copy the last editted row of R2 into R1;
 	    				R1_valid_row := R1_valid_row + 1;
 	    				l7_counter := 1;
@@ -444,7 +442,7 @@ begin
 	    						R1_matrix(R1_valid_row, l7_counter) := '1';
 	    					elsif(R2_matrix(wanted_row, l7_counter) = zero) then
 	    						R1_matrix(R1_valid_row, l7_counter) := '0';
-	    					end if;
+							end if;
 	    					l7_counter := l7_counter + 1;
 	    					state <= S7a;
 	    				else
