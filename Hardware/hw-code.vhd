@@ -29,6 +29,7 @@ entity main is
     );
 end entity;
 architecture arch of main is
+
 --signal numr : integer := qsplit - m;	--same numr as in code
 
 --max of columns in R after adding combination
@@ -36,25 +37,21 @@ constant max_column : integer := R_rows*(R_columns*R_columns + R_columns);
 
 --fixed point equal for zero
 signal zero : sfixed(10 downto -10);	
-signal neg_zero : sfixed(10 downto -10);	
+signal neg_zero : sfixed(10 downto -10);
+
 --fixed point signal of R2 data in R2_data_postfix
 signal R2_data: fixedp_array(1 to 8);
 
---signal jpos : int_array (1 to 20) := (others => 0);		--row_vector of indices in R2 row with positive value
---signal jneg : int_array (1 to 20) := (others => 0); 	--row_vector of indices in R2 row with negative value
-
---signal R1_matrix : bit_matrix(1 to R_rows, max_column downto 1);	--signal to store R1 with max size
---signal R2_matrix : int_matrix(1 to R2_rows, max_column downto 1);	--signal to store R2 with max size
-
 --all states
 type state_type is (S0, S0a, S0b, S1, S1a, S1b, S2, S3, S3a, S3aa, S3b, S4, S5, S5a, S5b, S6, S6a, S6b, S7, S7a, S8, S_f);	
---initial state
-signal state : state_type := S0;
-signal state_num : integer range 0 to 23 := 0;
---signal null_check :  integer := 0;
+signal state : state_type := S0;				--initial state
 
+signal state_num : integer range 0 to 23 := 0;	--to monitor sequential value of states
+--signal null_check :  integer := 0;			--the sample for variable checkers
+
+--to force keeping the signal in optimization
 attribute keep : string;
-attribute keep of state_num : signal is "true";
+attribute keep of state_num : signal is "true";		
 --attribute keep of null_check : signal is "true";
 
 --customizing fsm encoding
@@ -73,37 +70,37 @@ begin
 	process(clock, zero, state_num)
 
 	--counters for different loops
-	variable l1_counter : integer range 1 to 40 := 1;
-	variable l2_counter : integer range 1 to 40 := 1;
-	variable l3_counter : integer range 1 to 40 := 1;
-	variable l4_counter : integer range 1 to 40 := 1;
-	variable l5_counter : integer range 1 to 40 := 1;
-	variable l6_counter : integer range 1 to 40 := 1;
-	variable l7_counter : integer range 1 to 40 := 1;
-	variable l8_counter : integer range 1 to 40 := 1;
+	variable l1_counter : integer range 1 to 200 := 1;
+	variable l2_counter : integer range 1 to 200 := 1;
+	variable l3_counter : integer range 1 to 200 := 1;
+	variable l4_counter : integer range 1 to 200 := 1;
+	variable l5_counter : integer range 1 to 200 := 1;
+	variable l6_counter : integer range 1 to 200 := 1;
+	variable l7_counter : integer range 1 to 200 := 1;
+	variable l8_counter : integer range 1 to 200 := 1;
 
     --counter for additional loops that implements matrix iteration
-	variable la_counter : integer range 1 to 40 := 1;
-	variable lb_counter : integer range 0 to 100 := 1;
-	variable lc_counter : integer range 1 to 40 := 1;
-	variable ld_counter : integer range 1 to 40 := 1;
-	variable lf_counter : integer range 1 to 40 := 1;
-	variable lg_counter : integer range 1 to 40 := 1;
-	variable lh_counter : integer range 1 to 40 := 1;
-	variable li_counter : integer range 1 to 40 := 1;
-	variable lj_counter : integer range 1 to 40 := 1;
-	variable lk_counter : integer range 1 to 40 := 1;
-	variable ll_counter : integer range 1 to 40 := 1;
-	variable lm_counter : integer range 1 to 40 := 1;
+	variable la_counter : integer range 1 to 200 := 1;
+	variable lb_counter : integer range 1 to 200 := 1;
+	variable lc_counter : integer range 1 to 200 := 1;
+	variable ld_counter : integer range 1 to 200 := 1;
+	variable lf_counter : integer range 1 to 200 := 1;
+	variable lg_counter : integer range 1 to 200 := 1;
+	variable lh_counter : integer range 1 to 200 := 1;
+	variable li_counter : integer range 1 to 200 := 1;
+	variable lj_counter : integer range 1 to 200 := 1;
+	variable lk_counter : integer range 1 to 200 := 1;
+	variable ll_counter : integer range 1 to 200 := 1;
+	variable lm_counter : integer range 1 to 200 := 1;
 
     --variables the same as pseudo code
-	variable new_numr : integer range 0 to 10 := qsplit - m;
-	variable p : integer range 0 to 10 := q-m;			--main loop counter
-	variable k : integer range 0 to 10 := 0;			--jneg loop counter
-	variable l : integer range 0 to 10 := 0;			--jpos loop counter		
-	variable r : integer range 0 to 10 := 0;			--test loop counter
-	variable adj : integer range 0 to 2 := 0;			--test result	
-	variable nullbits : integer range 0 to 10 := 0;		--number of zeros in newr
+	variable new_numr : integer range 0 to 200 := qsplit - m;
+	variable p : integer range 0 to 200 := q-m;			--main loop counter
+	variable k : integer range 0 to 200 := 0;			--jneg loop counter
+	variable l : integer range 0 to 200 := 0;			--jpos loop counter		
+	variable r : integer range 0 to 200 := 0;			--test loop counter
+	variable adj : std_logic := '0';			--test result	
+	variable nullbits : integer range 0 to 200 := 0;		--number of zeros in newr
 	variable newr : std_logic_vector(1 to R_rows) := (others => '0');	--new column to be added
 	variable testr : std_logic_vector(1 to R_rows):= (others => '0');	--test column
 
@@ -115,16 +112,16 @@ begin
 	variable jpos : int_array (1 to max_column) := (others => 0);	--row_vector of indices in R2 row with positive value
 	variable jneg : int_array (1 to max_column) := (others => 0); 	--row_vector of indices in R2 row with negative value
 	
-	variable jneg_size : integer range 0 to 10 := 0;				--size of jneg
-	variable jpos_size : integer range 0 to 10 := 0;				--size of jpos
+	variable jneg_size : integer range 0 to 200 := 0;				--size of jneg
+	variable jpos_size : integer range 0 to 200 := 0;				--size of jpos
 
 	--S1 variables
-	variable wanted_row : integer range 0 to 10 := 0;						--the row number of R2 which is being changed
+	variable wanted_row : integer range 0 to R2_rows := 0;						--the row number of R2 which is being changed
 	variable wanted_R2 : fixedp_array(1 to 20) := (others => zero);	--the row_vector of R2 which is being changed
 
 	--last valid state of the result matrix
 	variable valid_column : integer range 0 to 10 := R_columns;		--total number of valid columns in R2 and R1
-	variable R1_valid_row : integer range 0 to 10 := R1_rows;		--total number of valid rows in R1
+	variable R1_valid_row : integer range 0 to R_rows := R1_rows;		--total number of valid rows in R1
 	--variable R2_valid_row : integer range 0 to 10 := R2_rows;		--total number of valid rows in R2
 
 	variable newR2element : sfixed(21 downto -21);	--result of subtraction and multiply in R2 new values, not necessary
@@ -322,7 +319,7 @@ begin
 					when S3b =>
 						state_num <= 10;
 	    				--initialization for adjacency test
-	    				adj := 1;
+	    				adj := '1';
 						r := 0;
 						lh_counter := R1_valid_row + 1;
 	    				state <= S4;
@@ -335,14 +332,14 @@ begin
 	    					lh_counter := 1;
 	    					state <= S4;
 	    				else
-		    				if((r < valid_column or r = valid_column) and (adj = 1)) then
+		    				if((r < valid_column or r = valid_column) and (adj = '1')) then
 								testr(lh_counter) := newr(lh_counter) or R1_matrix(lh_counter, r);
 		    					lh_counter := lh_counter + 1;
 		    					if(lh_counter > R1_valid_row) then
 									if ((r /= jpos(l)) and (r /= jneg(k)) and (testr = newr)) then
-			    						adj := 0;
+			    						adj := '0';
 			    					else
-			    					    adj := 1;
+			    					    adj := '1';
 									end if;
 			    					state <= S4;
 								else
@@ -356,7 +353,7 @@ begin
 					  when S5 =>
 					  	state_num <= 12;
 		  				--initializtion for combination loop in S5a
-		  				if(adj = 1) then
+		  				if(adj = '1') then
 							new_numr := new_numr + 1;
 							valid_column := valid_column + 1;
 							li_counter := 1;
