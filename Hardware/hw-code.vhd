@@ -51,9 +51,11 @@ type state_type is (S0, S0a, S0b, S1, S1a, S1b, S2, S3, S3a, S3aa, S3b, S4, S5, 
 --initial state
 signal state : state_type := S0;
 signal state_num : integer range 0 to 23 := 0;
+--signal null_check :  integer := 0;
 
 attribute keep : string;
 attribute keep of state_num : signal is "true";
+--attribute keep of null_check : signal is "true";
 
 --customizing fsm encoding
 attribute fsm_encoding : string;
@@ -244,10 +246,10 @@ begin
 						state_num <= 5;
 	    				--find_neg and find_pos implementation
 						if((l3_counter < valid_column) or (l3_counter = valid_column))  then
-	    					if(Is_Negative(wanted_R2(l3_counter)) = false) then
+	    					if(wanted_R2(l3_counter) > zero) then
 	    						jpos_size := jpos_size + 1;
 								jpos(jpos_size) := l3_counter;
-	    					elsif(Is_Negative(wanted_R2(l3_counter)) = true) then
+	    					elsif(wanted_R2(l3_counter) < zero) then
 	    						jneg_size := jneg_size + 1;
 								jneg(jneg_size) := l3_counter;
 							end if;
@@ -295,7 +297,7 @@ begin
 
 					when S3a =>
 						state_num <= 8;
-	    				--count the number of null bits in newr (the result of bitwise or in S3)
+						--count the number of null bits in newr (the result of bitwise or in S3)
 	    				if((l4_counter < R1_valid_row) or (l4_counter = R1_valid_row)) then
 	    					if(newr(l4_counter) = '0') then
 	    						nullbits := nullbits + 1;
@@ -307,9 +309,10 @@ begin
 	    				end if;
 
 					when S3aa =>
-						state_num <= 9;			
+						state_num <= 9;	
+						--null_check <= nullbits;		
 	    				--check the minimum number of zeros
-						if(nullbits+1 < qsplit-m-1) then	--????????????????????????????????
+						if(nullbits+1 < qsplit-m-1) then	
 							lg_counter := R1_valid_row + 1;
 	    					state <= S3;
 	    				else
