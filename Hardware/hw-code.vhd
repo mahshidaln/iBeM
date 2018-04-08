@@ -30,7 +30,7 @@ entity main is
 end entity;
 architecture arch of main is
 
---signal numr : integer := qsplit - m;	--same numr as in code
+--signal numr : integer := qsplit - m;	--same numr as in code: same as valid_column
 
 --max of columns in R after adding combination
 constant max_column : integer := R_rows*(R_columns*R_columns + R_columns);  
@@ -81,7 +81,7 @@ begin
 
     --counter for additional loops that implements matrix iteration
 	variable la_counter : integer range 1 to 200 := 1;
-	variable lb_counter : integer range 1 to 200 := 1;
+	variable lb_counter : integer range 0 to 200 := 1;
 	variable lc_counter : integer range 1 to 200 := 1;
 	variable ld_counter : integer range 1 to 200 := 1;
 	variable lf_counter : integer range 1 to 200 := 1;
@@ -452,11 +452,11 @@ begin
 					when S8 =>
 						state_num <= 20;
 						--turn the 2D R2_matrix into a vector
-						if((l8_counter < R1_valid_row) or (l8_counter = R1_valid_row)) then
-							EM_data(lm_counter) <= R1_matrix(l8_counter, ll_counter);
+						if((l8_counter < valid_column) or (l8_counter = valid_column)) then
+							EM_data(lm_counter) <= R1_matrix(ll_counter, l8_counter);
 							lm_counter := lm_counter + 1;
 							ll_counter := ll_counter + 1;
-							if(ll_counter > valid_column) then
+							if(ll_counter > R1_valid_row) then
 								l8_counter := l8_counter + 1;
 								ll_counter := 1;
 								state <= S8;
