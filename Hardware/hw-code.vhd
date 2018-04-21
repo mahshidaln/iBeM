@@ -15,7 +15,8 @@ entity main is
 	        R_rows : in integer range 0 to 7 := 6;		--qsplit
 	        R_columns : in integer range 0 to 5 := 4;	--qsplit-m
 	        R1_rows : in integer range 0 to 5 := 4;		--qsplit-m
-	        R2_rows : in integer range 0 to 3 := 2);	--m
+			R2_rows : in integer range 0 to 3 := 2;	--max of columns in R after adding combination
+			max_column : in integer range 0 to 3000 := 16);	--m
 	port(clock, reset : in std_logic;
 	    --R1_data : in std_logic_vector(1 to R1_rows*R_columns);
 	    R1_data : in std_logic_vector(1 to 16);
@@ -33,11 +34,11 @@ architecture arch of main is
 --signal numr : integer := qsplit - m;	--same numr as in code: same as valid_column
 
 --max of columns in R after adding combination
-constant max_column : integer := R_rows*(R_columns*R_columns + R_columns);  
+--constant max_column : integer := R_rows*(R_columns*R_columns + R_columns);  
 
 --fixed point equal for zero
-signal zero : sfixed(10 downto -10);	
-signal neg_zero : sfixed(10 downto -10);
+signal zero : sfixed(10 downto -15);	
+signal neg_zero : sfixed(10 downto -15);
 
 --fixed point signal of R2 data in R2_data_postfix
 signal R2_data: fixedp_array(1 to 8);
@@ -64,43 +65,43 @@ begin
 	--initialize R2_data with fixed_point values read from R2_data_postfix
 	for_label:
 	for i in 1 to 8 generate
-		R2_data(i) <= to_sfixed(R2_data_postfix(i), 10 , -10);
+		R2_data(i) <= to_sfixed(R2_data_postfix(i), 10 , -15);
 	end generate for_label;
 
 	process(clock, zero, state_num)
 
 	--counters for different loops
-	variable l1_counter : integer range 1 to 200 := 1;
-	variable l2_counter : integer range 1 to 200 := 1;
-	variable l3_counter : integer range 1 to 200 := 1;
-	variable l4_counter : integer range 1 to 200 := 1;
-	variable l5_counter : integer range 1 to 200 := 1;
-	variable l6_counter : integer range 1 to 200 := 1;
-	variable l7_counter : integer range 1 to 200 := 1;
-	variable l8_counter : integer range 1 to 200 := 1;
+	variable l1_counter : integer range 1 to 200 := 1;				--boundary: R1_rows
+	variable l2_counter : integer range 1 to 200 := 1;				--boundary:	R2_rows
+	variable l3_counter : integer range 1 to max_column := 1;		--boundary:	valid_column
+	variable l4_counter : integer range 1 to 200 := 1;				--boundary:	R1_valid_row
+	variable l5_counter : integer range 1 to 200 := 1;				--boundary: R2_rows
+	variable l6_counter : integer range 1 to max_column := 1;		--boundary:	jneg_size
+	variable l7_counter : integer range 1 to max_column := 1;		--boundary:	valid_column
+	variable l8_counter : integer range 1 to max_column := 1;		--boundary:	valid_column
 
     --counter for additional loops that implements matrix iteration
-	variable la_counter : integer range 1 to 200 := 1;
-	variable lb_counter : integer range 0 to 200 := 1;
-	variable lc_counter : integer range 1 to 200 := 1;
-	variable ld_counter : integer range 1 to 200 := 1;
-	variable lf_counter : integer range 1 to 200 := 1;
-	variable lg_counter : integer range 1 to 200 := 1;
-	variable lh_counter : integer range 1 to 200 := 1;
-	variable li_counter : integer range 1 to 200 := 1;
-	variable lj_counter : integer range 1 to 200 := 1;
-	variable lk_counter : integer range 1 to 200 := 1;
-	variable ll_counter : integer range 1 to 200 := 1;
-	variable lm_counter : integer range 1 to 200 := 1;
+	variable la_counter : integer range 1 to 200 := 1;				--boundary: R_columns
+	variable lb_counter : integer range 0 to 200 := 1;				--boundary: R1_data size
+	variable lc_counter : integer range 1 to 200 := 1;				--boundary: R_columns
+	variable ld_counter : integer range 1 to 200 := 1;				--boundary: R2_data size
+	variable lf_counter : integer range 1 to max_column := 1;		--boundary:	valid_column
+	variable lg_counter : integer range 1 to 200 := 1;				--boundary:	R1_valid_row
+	variable lh_counter : integer range 1 to 200 := 1;				--boundary:	R1_valid_row
+	variable li_counter : integer range 1 to 200 := 1;				--boundary:	R1_valid_row
+	variable lj_counter : integer range 1 to 200 := 1;				--boundary:	R1_valid_row
+	variable lk_counter : integer range 1 to 200 := 1;				--boundary: R2_rows
+	variable ll_counter : integer range 1 to 200 := 1;				--boundary:	R1_valid_row
+	variable lm_counter : integer range 1 to 700 := 1;				--boundary: EM_data size
 
     --variables the same as pseudo code
 	variable new_numr : integer range 0 to 200 := qsplit - m;
-	variable p : integer range 0 to 200 := q-m;			--main loop counter
-	variable k : integer range 0 to 200 := 0;			--jneg loop counter
-	variable l : integer range 0 to 200 := 0;			--jpos loop counter		
-	variable r : integer range 0 to 200 := 0;			--test loop counter
-	variable adj : std_logic := '0';			--test result	
-	variable nullbits : integer range 0 to 200 := 0;		--number of zeros in newr
+	variable p : integer range 0 to 200 := q-m;					--main loop counter, bounday: m
+	variable k : integer range 0 to max_column := 0;			--jneg loop counter, bounday: jneg_size
+	variable l : integer range 0 to max_column := 0;			--jpos loop counter, bounday: jpos_size
+	variable r : integer range 0 to max_column:= 0;				--test loop counter, bounday: valid_columns
+	variable adj : std_logic := '0';							--test result	
+	variable nullbits : integer range 0 to 200 := 0;			--number of zeros in newr
 	variable newr : std_logic_vector(1 to R_rows) := (others => '0');	--new column to be added
 	variable testr : std_logic_vector(1 to R_rows):= (others => '0');	--test column
 
@@ -116,15 +117,15 @@ begin
 	variable jpos_size : integer range 0 to 200 := 0;				--size of jpos
 
 	--S1 variables
-	variable wanted_row : integer range 0 to R2_rows := 0;						--the row number of R2 which is being changed
+	variable wanted_row : integer range 0 to R2_rows := 0;			--the row number of R2 which is being changed
 	variable wanted_R2 : fixedp_array(1 to 20) := (others => zero);	--the row_vector of R2 which is being changed
 
 	--last valid state of the result matrix
 	variable valid_column : integer range 0 to 10 := R_columns;		--total number of valid columns in R2 and R1
-	variable R1_valid_row : integer range 0 to R_rows := R1_rows;		--total number of valid rows in R1
+	variable R1_valid_row : integer range 0 to R_rows := R1_rows;	--total number of valid rows in R1
 	--variable R2_valid_row : integer range 0 to 10 := R2_rows;		--total number of valid rows in R2
 
-	variable newR2element : sfixed(21 downto -21);	--result of subtraction and multiply in R2 new values, not necessary
+	variable newR2element : sfixed(21 downto -31);	--result of subtraction and multiply in R2 new values, not necessary
 
 	begin
 	  	if rising_edge(clock) then
@@ -380,7 +381,11 @@ begin
 	    				--combine and add the result of combination to R2
 	    				if((l5_counter < R2_rows) or (l5_counter = R2_rows)) then
 							newR2element := (R2_matrix(wanted_row, jpos(l))*R2_matrix(l5_counter, jneg(k)) - R2_matrix(wanted_row, jneg(k))*R2_matrix(l5_counter, jpos(l)));
-							R2_matrix(l5_counter, new_numr) := newR2element(10 downto -10);
+							if(Is_Negative(newR2element) and newR2element(10) = '0') then
+								R2_matrix(l5_counter, new_numr) := '1' & newR2element(9 downto -15);
+							else
+								R2_matrix(l5_counter, new_numr) := newR2element(10 downto -15);
+							end if;
 	    					l5_counter := l5_counter + 1;
 	    					state <= S5b;
 						else

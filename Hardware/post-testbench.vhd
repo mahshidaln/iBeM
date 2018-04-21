@@ -12,28 +12,28 @@ architecture Behavioral of tb is
 		  clock : in STD_LOGIC;
 		  reset : in STD_LOGIC;
 		  R1_data : in STD_LOGIC_VECTOR ( 1 to 16 );
-		  \R2_data_postfix[1]\ : in STD_LOGIC_VECTOR ( 20 downto 0 );
-		  \R2_data_postfix[2]\ : in STD_LOGIC_VECTOR ( 20 downto 0 );
-		  \R2_data_postfix[3]\ : in STD_LOGIC_VECTOR ( 20 downto 0 );
-		  \R2_data_postfix[4]\ : in STD_LOGIC_VECTOR ( 20 downto 0 );
-		  \R2_data_postfix[5]\ : in STD_LOGIC_VECTOR ( 20 downto 0 );
-		  \R2_data_postfix[6]\ : in STD_LOGIC_VECTOR ( 20 downto 0 );
-		  \R2_data_postfix[7]\ : in STD_LOGIC_VECTOR ( 20 downto 0 );
-		  \R2_data_postfix[8]\ : in STD_LOGIC_VECTOR ( 20 downto 0 );
+		  \R2_data_postfix[1]\ : in STD_LOGIC_VECTOR ( 25 downto 0 );
+		  \R2_data_postfix[2]\ : in STD_LOGIC_VECTOR ( 25 downto 0 );
+		  \R2_data_postfix[3]\ : in STD_LOGIC_VECTOR ( 25 downto 0 );
+		  \R2_data_postfix[4]\ : in STD_LOGIC_VECTOR ( 25 downto 0 );
+		  \R2_data_postfix[5]\ : in STD_LOGIC_VECTOR ( 25 downto 0 );
+		  \R2_data_postfix[6]\ : in STD_LOGIC_VECTOR ( 25 downto 0 );
+		  \R2_data_postfix[7]\ : in STD_LOGIC_VECTOR ( 25 downto 0 );
+		  \R2_data_postfix[8]\ : in STD_LOGIC_VECTOR ( 25 downto 0 );
 		  SW_call : out STD_LOGIC;
 		  EM_columns : out STD_LOGIC_VECTOR ( 3 downto 0 );
-		  EM_rows : out STD_LOGIC_VECTOR ( 3 downto 0 );
+		  EM_rows : out STD_LOGIC_VECTOR ( 2 downto 0 );
 		  EM_data : out STD_LOGIC_VECTOR ( 1 to 36 )
 		);
 	end component main;
 	signal EEM_columns : STD_LOGIC_VECTOR ( 3 downto 0 );
-	signal EEM_rows : STD_LOGIC_VECTOR ( 3 downto 0 );
+	signal EEM_rows : STD_LOGIC_VECTOR ( 2 downto 0 );
 	signal SSW_call : std_logic := '0';
 	signal EEM_data : std_logic_vector(1 to 36)  := (others => '0');
 	signal rst, clk : std_logic := '0';
 
 	signal RR1_data : std_logic_vector(1 to 16);
-	type std_vec_array is array(natural range<>) of std_logic_vector(20 downto 0);
+	type std_vec_array is array(natural range<>) of std_logic_vector(25 downto 0);
 	signal RR2_data : std_vec_array(1 to 8); 
 
 	--signal m : in integer range 0 to 2;			--metabolites
@@ -49,12 +49,12 @@ begin
 	--q <= 5;
 	--qsplit <= 6;
 	--R_rows <= 6;
-	--R_columns <= 4;
-	--R1_rows <= 4;
-	--R2_rows <= 2;
+--	R_columns <= 4;
+--	R1_rows <= 4;
+--	R2_rows <= 2;
 	
 	RR1_data <= ('1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1');
-	RR2_data <= ("000000000001000000000", "111111111111000000000", "111111111111000000000", "000000000010000000000", "000000000001000000000", "000000000001000000000", "111111111111000000000", "000000000000000000000");
+	RR2_data <= ("00000000000100000000000000", "11111111111100000000000000", "11111111111100000000000000", "00000000001000000000000000", "00000000000100000000000000", "00000000000100000000000000", "11111111111100000000000000", "00000000000000000000000000");
 
 	clk <= not clk after 100 us;
 
