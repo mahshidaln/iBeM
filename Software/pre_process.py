@@ -20,11 +20,13 @@ def pre_process(stoichio_matrix, reversibles):
     sympy.pprint(stoichio_matrix)
     print()
 
+    ri = 0
     for idx, r in enumerate(reversibles):
         if r == 1:
             stoichio_matrix = \
                     stoichio_matrix.col_insert(0,
-                                               -stoichio_matrix.col(idx + rev))
+                                               -stoichio_matrix.col(idx + ri))
+            ri += 1
             rev -= 1
             r_labels['R%dc' % idx] = rev
 
