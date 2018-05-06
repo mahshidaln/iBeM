@@ -8,7 +8,7 @@ def pre_process(stoichio_matrix, reversibles):
     stoichio_matrix = sympy.Matrix(stoichio_matrix)
     M, Q = stoichio_matrix.shape
 
-    rev = reduce((lambda x, y: y + 1 if x == 1 else y), reversibles)
+    rev = reduce((lambda y, x: y + 1 if x == 1 else y), reversibles, 0)
     print('Reversibles #: {}\n'.format(rev))
     q_split = Q + rev
 
