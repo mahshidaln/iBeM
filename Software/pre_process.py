@@ -1,7 +1,7 @@
 import sympy
 
 from functools import reduce
-# from colperm import colperm
+from colperm import colperm
 
 
 def pre_process(stoichio_matrix, reversibles):
@@ -25,6 +25,13 @@ def pre_process(stoichio_matrix, reversibles):
     sympy.pprint(r_matrix)
     print()
 
+    r2_matrix = sympy.Matrix()
+    for i in colperm(r_matrix.T):
+        r2_matrix = r2_matrix.row_insert(r2_matrix.shape[0], r_matrix.row(i))
+    r_matrix = r2_matrix
+
+    sympy.pprint(r_matrix)
+    print()
 
     rev = reduce((lambda y, x: y + 1 if x == 1 else y), reversibles, 0)
     print('Reversibles #: {}\n'.format(rev))
@@ -32,7 +39,7 @@ def pre_process(stoichio_matrix, reversibles):
 
     # insert rev cols
     for i in range(rev):
-        r_matrix = r_matrix.col_insert(r_matrix.shape[1], sympy.zeros(Q, 1))
+        r_matrix = r_matrix.col_insert(r_matrix.shape[1], sympy.zeros(r_matrix.shape[0], 1))
         r_matrix = r_matrix.row_insert(Q - M + i, sympy.zeros(1, r_matrix.shape[1]))
         r_matrix[Q - M + i, r_matrix.shape[1] - 1] = 1
     sympy.pprint(r_matrix)
