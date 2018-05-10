@@ -8,11 +8,13 @@ def pre_process(stoichio_matrix, reversibles):
     stoichio_matrix = sympy.Matrix(stoichio_matrix)
     M, Q = stoichio_matrix.shape
 
+    if stoichio_matrix.rank() != M:
+        print("invalid rank %d != %d" % (stoichio_matrix.rank(), M))
+        return
+
     print("{:-^50}\n".format("original"))
     sympy.pprint(stoichio_matrix)
     print()
-
-
 
     print("{:-^50}\n".format("kernel"))
     r_matrix = sympy.Matrix()
