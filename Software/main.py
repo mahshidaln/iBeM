@@ -11,8 +11,8 @@ def cli():
 @click.command()
 @click.argument('input', type=click.File('r'))
 def preprocessing(input):
-    reactions = int(input.readline())
     metabolites = int(input.readline())
+    reactions = int(input.readline())
     print('Metabolites: {0}\nReactions: {1}\n'.format(metabolites, reactions))
 
     reversibles = [int(x) for x in input.readline().split()]
