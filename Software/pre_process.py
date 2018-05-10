@@ -45,6 +45,7 @@ def pre_process(stoichio_matrix, reversibles):
     sympy.pprint(r_matrix)
     print()
 
+    # TODO
     r_labels = {} # R labels
     idx = 0 # row index
     f_idx = 0 # forward reaction
