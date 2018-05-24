@@ -59,7 +59,7 @@ begin
 	zero <=  to_sfixed(0.0, zero);
 	
 	--initialize R2_data with fixed_point values read from R2_data_postfix
-	for_label: for i in 1 to R2_rows*R_columns generate
+	for_label: for i in 1 to (R2_rows*R_columns) generate
 		R2_data(i) <= to_sfixed(R2_data_postfix(i), 10 , -15);
 	end generate for_label;
 
@@ -116,7 +116,7 @@ begin
 	variable wanted_R2 : fixedp_array(1 to 20) := (others => zero);	--the row_vector of R2 which is being changed
 
 	--last valid state of the result matrix
-	variable valid_column : integer range 0 to R_columns := R_columns;		--total number of valid columns in R2 and R1
+	variable valid_column : integer range 0 to max_column := R_columns;		--total number of valid columns in R2 and R1
 	variable R1_valid_row : integer range 0 to R_rows := R1_rows;	--total number of valid rows in R1
 	--variable R2_valid_row : integer range 0 to 10 := R2_rows;		--total number of valid rows in R2
 
